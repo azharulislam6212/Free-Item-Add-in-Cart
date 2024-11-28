@@ -1,0 +1,16 @@
+{% liquid
+    
+   assign product_1  = settings.product_1
+   assign product_2  = settings.product_2
+   assign product_3  = settings.product_3
+   assign first_product_vid = product_1.variants.first.id  | default: 41000530608208
+   assign second_product_vid = product_2.variants.first.id  | default: 41000601616464
+   assign third_product_vid = product_3.variants.first.id  | default: 41000684388432
+
+%}
+
+        {% unless item.variant_id == first_product_vid or item.variant_id == second_product_vid or item.variant_id == third_product_vid %}
+ 
+              {% comment %}  remove quanitity and price whih this condition  {% endcomment %}
+         {% endunless %}
+            
