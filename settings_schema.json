@@ -1,0 +1,24 @@
+  {
+    "name": "Free Products",
+    "settings": [
+      {
+        "type": "paragraph",
+        "content": "Free Products Price Must Be $0"
+      },
+      {
+        "type": "product",
+        "id": "product_1",
+        "label": "Select Product 1 (When Spend $40)"
+      },
+      {
+        "type": "product",
+        "id": "product_2",
+        "label": "Select Product 2 (When Spend $80)"
+      },
+      {
+        "type": "product",
+        "id": "product_3",
+        "label": "Select Product 3 (When Spend $120)"
+      }
+    ]
+  },
