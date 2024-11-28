@@ -1,0 +1,112 @@
+// Utility to fetch data and update DOM
+function fetchAndUpdateDOM(sectionId, querySelector, updateSelector) {
+  fetch(`?section_id=${sectionId}`)
+    .then(response => response.text())
+    .then(cartData => {
+      const doc = new DOMParser().parseFromString(cartData, 'text/html');
+      const updatedElement = doc.querySelector(querySelector);
+      const currentElement = document.querySelector(updateSelector);
+
+      if (updatedElement && currentElement) {
+        currentElement.replaceWith(updatedElement);
+      }
+    })
+    .catch(error => console.error(`Error fetching ${sectionId}:`, error));
+}
+
+// Utility to add or update items in the cart
+function updateCart(data, removeItems = false) {
+  const method = removeItems ? '/cart/update.js' : '/cart/add.js';
+  const body = removeItems ? JSON.stringify({ updates: data }) : JSON.stringify(data);
+
+  return fetch(method, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body,
+  })
+  .then(response => response.json())
+  .catch(error => console.error('Error updating cart:', error));
+}
+
+// Function to get the cart details and refresh DOM
+function getCartDetails() {
+  fetchAndUpdateDOM('cart-drawer', '.cart-drawer__body', '.cart-drawer__body');
+  fetchAndUpdateDOM('header', '.cart-item-count-bubble', '.cart-item-count-bubble');
+}
+
+// Function to add a product to the cart
+function add(data) {
+  updateCart(data).then(() => {
+    console.log('Item added to the cart!');
+    getCartDetails();
+  });
+}
+
+// Function to handle fee product logic
+function feeProductAdd(data_final) {
+  fetch('/cart.js')
+    .then(response => response.json())
+    .then(cart => {
+      const total_price = cart.total_price / 100;
+
+      // Extract product ids for easy reference
+      const [product_1, product_2, product_3] = data_final.map(item => item.id);
+      
+      // Check for existing cart items
+      const itemInCart = (id) => cart.items.find(item => item.id === id);
+
+      // Helper to remove item from cart
+      function removeItemFromCart(itemId) {
+        return updateCart({ [itemId]: 0 }, true); // Remove item by setting quantity to 0
+      }
+
+      // Helper to add item if it's not already in the cart
+      function addIfNotInCart(itemData, itemInCartCheck) {
+        if (!itemInCartCheck) {
+          add(itemData);
+        }
+      }
+
+      if (total_price < 39 && itemInCart(product_1)) {
+        removeItemFromCart(product_1).then(() => getCartDetails());
+      }
+
+      if (total_price >= 40 && total_price <= 79) {
+        if (itemInCart(product_2)) {
+          removeItemFromCart(product_2).then(() => addIfNotInCart(data_final[0], itemInCart(product_1)));
+        } else if (itemInCart(product_3)) {
+          removeItemFromCart(product_3).then(() => addIfNotInCart(data_final[0], itemInCart(product_1)));
+        } else {
+          addIfNotInCart(data_final[0], itemInCart(product_1));
+        }
+      }
+
+      if (total_price >= 80 && total_price <= 119) {
+        if (itemInCart(product_1)) {
+          removeItemFromCart(product_1).then(() => addIfNotInCart(data_final[1], itemInCart(product_2)));
+        } else if (itemInCart(product_3)) {
+          removeItemFromCart(product_3).then(() => addIfNotInCart(data_final[1], itemInCart(product_2)));
+        } else {
+          addIfNotInCart(data_final[1], itemInCart(product_2));
+        }
+      }
+
+      if (total_price >= 120) {
+        if (itemInCart(product_1)) {
+          removeItemFromCart(product_1).then(() => addIfNotInCart(data_final[2], itemInCart(product_3)));
+        } else if (itemInCart(product_2)) {
+          removeItemFromCart(product_2).then(() => addIfNotInCart(data_final[2], itemInCart(product_3)));
+        } else {
+          addIfNotInCart(data_final[2], itemInCart(product_3));
+        }
+      }
+    })
+    .catch(error => console.error('Error fetching cart data:', error));
+}
+
+// Example data initialization
+let data_final = [
+  { id: {{ first_product_vid }}, quantity: 1 },
+  { id: {{ second_product_vid }}, quantity: 1 },
+  { id: {{ third_product_vid }}, quantity: 1 }
+];
