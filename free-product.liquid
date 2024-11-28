@@ -1,0 +1,298 @@
+{%comment%} sinippet {%commentend%}
+{% liquid
+    
+   assign product_1  = settings.product_1
+   assign product_2  = settings.product_2
+   assign product_3  = settings.product_3
+   assign first_product_vid = product_1.variants.first.id  | default: 41000530608208
+   assign second_product_vid = product_2.variants.first.id  | default: 41000601616464
+   assign third_product_vid = product_3.variants.first.id  | default: 41000684388432
+
+%}
+
+<script>
+  let data = {
+    items: [
+      { id: {{ first_product_vid }}, quantity: 1 },
+      { id: {{second_product_vid}}, quantity: 1 },
+      { id: {{third_product_vid}}, quantity: 1 },
+    ],
+  };
+  var data_final = data.items;
+
+  function get_cart_details(){
+            fetch("?section_id=cart-drawer")
+              .then(response => response.text())
+              .then(cartData => {
+                // Create a new DOM element from the fetched HTML
+                var parser = new DOMParser();
+                var doc = parser.parseFromString(cartData, 'text/html');
+                 const cartHeaderSrc = doc.querySelector('[data-cart-dynamic-content="cart-header"]');
+                  const cartHeader = document.querySelector('[data-cart-dynamic-content="cart-header"]');
+                  if (cartHeaderSrc && cartHeader) cartHeader.replaceWith(cartHeaderSrc);
+                // Find the new cart items section
+                var cartItems = doc.querySelector('.cart-drawer__body');
+                // Replace the current cart items with the new content
+                var currentCartWrap = document.querySelector('.cart-drawer__body');
+                if (cartItems && currentCartWrap) {
+                  currentCartWrap.replaceWith(cartItems);
+                }
+              })
+              .catch(error => {
+                console.error('Error fetching cart drawer content:', error);
+              });
+
+            fetch("?section_id=header")
+            .then(response => response.text())
+            .then(cartData => {
+              // Create a new DOM element from the fetched HTML
+              var parser = new DOMParser();
+              var doc = parser.parseFromString(cartData, 'text/html');
+              
+              // Find the new cart count (inside .cart-icon dfn)
+              var cartCount = doc.querySelector('.cart-item-count-bubble');
+              
+              // Replace the current cart count with the new content
+              var currentCartCount = document.querySelector('.cart-item-count-bubble');
+              if (cartCount && currentCartCount) {
+                currentCartCount.replaceWith(cartCount);
+              }
+            })
+            .catch(error => {
+              console.error('Error fetching header content:', error);
+            });
+  }
+
+  function add(data) {
+    fetch('/cart/add.js', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    })
+      .then((response) => response.json())
+      .then(() => {
+        console.log('Item added to the cart!');
+        return fetch('?section_id=cart-drawer');
+      })
+      .then((response) => response.text())
+      .then((cartData) => {
+          get_cart_details();
+      })
+      .catch((error) => console.error('Error:', error));
+  }
+
+  function feeProductAdd(data_final) {
+    fetch('/cart.js')
+      .then((response) => response.json())
+      .then((cart) => {
+        var total_price = cart.total_price / 100;
+
+          var product_1 = data_final[0].id;
+          var free_Incart1 = cart.items.find((item) => item.id === product_1);
+
+        if(total_price <  39 && free_Incart1 != null){
+          var remove_free_data = { updates: {} };
+          remove_free_data.updates[free_Incart1.id] = '0';
+            fetch('/cart/update.js', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify(remove_free_data),
+            })
+              .then((response) => response.json())
+              .then((res) => {
+              console.log('Remove Success');
+
+              get_cart_details();
+
+              })
+              .catch((error) => {
+                console.error('Error removing item:', error);
+              });
+
+
+        }
+
+
+
+        if (total_price >= 40 && total_price <= 79) {
+          var product_1 = data_final[0].id;
+          var data = data_final[0];
+          var itemInCart = cart.items.find((item) => item.id === product_1);
+
+          var product_2 = data_final[1].id;
+          var incartItem_2 = cart.items.find((item) => item.id === product_2);
+
+          var product_3 = data_final[2].id;
+          var incartItem_3 = cart.items.find((item) => item.id === product_3);
+
+          if (incartItem_2 != null) {
+            var remove_data = { updates: {} };
+            remove_data.updates[incartItem_2.id] = '0';
+            fetch('/cart/update.js', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify(remove_data),
+            })
+              .then((response) => response.json())
+              .then((res) => {
+                if (itemInCart == null) {
+                  add(data);
+                }
+              })
+              .catch((error) => {
+                console.error('Error removing item:', error);
+              });
+          } else if (incartItem_3 != null) {
+            var remove_data = { updates: {} };
+            remove_data.updates[incartItem_3.id] = '0';
+
+            fetch('/cart/update.js', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify(remove_data),
+            })
+              .then((response) => response.json())
+              .then((res) => {
+                if (itemInCart == null) {
+                  add(data);
+                }
+              })
+              .catch((error) => {
+                console.error('Error removing item:', error);
+              });
+          } else {
+            if (itemInCart == null) {
+              add(data);
+            }
+          }
+        }
+
+        if (total_price >= 80 && total_price <= 119) {
+          var product_2 = data_final[1].id;
+          var data = data_final[1];
+          // console.log("data ", data);
+          var itemInCart2 = cart.items.find((item) => item.id === product_2);
+          var product_1 = data_final[0].id;
+          var incartItem_1 = cart.items.find((item) => item.id === product_1);
+
+          var product_3 = data_final[2].id;
+          var incartItem_3 = cart.items.find((item) => item.id === product_3);
+
+          if (incartItem_1 != null) {
+            var remove_data = { updates: {} };
+            remove_data.updates[incartItem_1.id] = '0';
+            fetch('/cart/update.js', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify(remove_data),
+            })
+              .then((response) => response.json())
+              .then((res) => {
+                if (itemInCart2 == null) {
+                  add(data);
+                }
+              })
+              .catch((error) => {
+                console.error('Error removing item:', error);
+              });
+          } else if (incartItem_3 != null) {
+            var remove_data = { updates: {} };
+            remove_data.updates[incartItem_3.id] = '0';
+
+            fetch('/cart/update.js', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify(remove_data),
+            })
+              .then((response) => response.json())
+              .then((res) => {
+                if (itemInCart2 == null) {
+                  add(data);
+                }
+              })
+              .catch((error) => {
+                console.error('Error removing item:', error);
+              });
+          } else {
+            if (itemInCart2 == null) {
+              add(data);
+            }
+          }
+        }
+
+        if (total_price >= 120) {
+          var product_3 = data_final[2].id;
+          var data = data_final[2];
+          var itemInCart3 = cart.items.find((item) => item.id === product_3);
+
+          var product_1 = data_final[0].id;
+          var incartItem_1 = cart.items.find((item) => item.id === product_1);
+
+          var product_2 = data_final[1].id;
+          var incartItem_2 = cart.items.find((item) => item.id === product_2);
+
+          if (incartItem_1 != null) {
+            var remove_data = { updates: {} };
+            remove_data.updates[incartItem_1.id] = '0';
+            fetch('/cart/update.js', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify(remove_data),
+            })
+              .then((response) => response.json())
+              .then((res) => {
+                if (itemInCart3 == null) {
+                  add(data);
+                }
+              })
+              .catch((error) => {
+                console.error('Error removing item:', error);
+              });
+          } else if (incartItem_2 != null) {
+            var remove_data = { updates: {} };
+            remove_data.updates[incartItem_2.id] = '0';
+
+            fetch('/cart/update.js', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify(remove_data),
+            })
+              .then((response) => response.json())
+              .then((res) => {
+                if (itemInCart3 == null) {
+                  add(data);
+                }
+              })
+              .catch((error) => {
+                console.error('Error removing item:', error);
+              });
+          } else {
+            if (itemInCart3 == null) {
+              add(data);
+            }
+          }
+        }
+      })
+      .catch((error) => {
+        console.error('Error fetching cart data:', error);
+      });
+  }
+
+       if(data_final != null ){
+          feeProductAdd(data_final);
+        }
+</script>
