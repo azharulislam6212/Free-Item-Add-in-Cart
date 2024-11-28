@@ -1,0 +1,8 @@
+{% if settings.enable_free %}
+  {% render 'free-product' %}
+
+  {% else %}
+    <script>
+        var data_final = null;
+    </script>
+{% endif %}
