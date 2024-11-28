@@ -1,4 +1,4 @@
-{%comment%} sinippet {%commentend%}
+ {% comment %} sinippet  {% endcomment %}
 {% liquid
     
    assign product_1  = settings.product_1
@@ -292,6 +292,9 @@
       });
   }
 
+
+
+ {% comment %} call this function where add remove update this cart {% endcomment %}
        if(data_final != null ){
           feeProductAdd(data_final);
         }
