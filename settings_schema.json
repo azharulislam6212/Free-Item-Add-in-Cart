@@ -1,6 +1,12 @@
   {
     "name": "Free Products",
     "settings": [
+        {
+        "type": "checkbox",
+        "id": "enable_free",
+        "label": "Enable Free Product",
+        "default": true
+      },
       {
         "type": "paragraph",
         "content": "Free Products Price Must Be $0"
